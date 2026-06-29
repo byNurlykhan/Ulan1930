@@ -639,9 +639,12 @@
                     <button onclick="adminLogout()" class="text-xs font-mono text-white/50 hover:text-red-400 underline">Шығу</button>
                 </div>
 
-                <!-- NEW NEWS FORM -->
+                <!-- NEW / EDIT NEWS FORM -->
                 <div class="space-y-4">
-                    <h4 class="text-lg font-black uppercase text-white">Жаңа жаңалық қосу</h4>
+                    <div class="flex items-center justify-between gap-3">
+                        <h4 id="newsFormHeading" class="text-lg font-black uppercase text-white">Жаңа жаңалық қосу</h4>
+                        <button id="newsCancelBtn" onclick="cancelEditNews()" class="hidden text-xs font-mono text-white/50 hover:text-[#B0FB26] underline whitespace-nowrap">↩ Жаңасын қосуға оралу</button>
+                    </div>
                     <div class="space-y-1.5">
                         <label class="block text-xs font-mono uppercase tracking-widest text-white/70">Тақырып *</label>
                         <input type="text" id="newsTitle" class="w-full bg-black/40 text-white px-4 py-3 rounded-xl border-2 border-white/10 focus:border-[#B0FB26] focus:outline-none font-medium" placeholder="Жаңалықтың тақырыбы">
@@ -656,9 +659,13 @@
                         <div id="newsImagePreview" class="hidden mt-3">
                             <img id="newsImagePreviewImg" class="w-full max-h-48 object-cover rounded-xl border border-white/10" alt="алдын ала қарау">
                         </div>
+                        <label id="newsRemoveImageWrap" class="hidden mt-2 flex items-center gap-2 text-xs text-white/60 cursor-pointer">
+                            <input type="checkbox" id="newsRemoveImage" class="accent-[#B0FB26] w-4 h-4">
+                            <span>Бұрынғы суретті өшіру (жаңасын қоймай)</span>
+                        </label>
                     </div>
-                    <button id="newsPublishBtn" onclick="publishNews()" class="w-full bg-[#B0FB26] text-[#111111] font-black uppercase tracking-wide py-3.5 rounded-xl hover:bg-white transition-colors flex justify-center items-center gap-2">
-                        Жариялау 📢
+                    <button id="newsPublishBtn" onclick="submitNews()" class="w-full bg-[#B0FB26] text-[#111111] font-black uppercase tracking-wide py-3.5 rounded-xl hover:bg-white transition-colors flex justify-center items-center gap-2">
+                        <span id="newsPublishBtnText">Жариялау 📢</span>
                     </button>
                     <p id="newsPublishMsg" class="text-center text-sm font-medium hidden"></p>
                 </div>
@@ -815,6 +822,7 @@
             try {
                 const res = await jsonp({ action: 'getNews' });
                 const news = (res && res.news) ? res.news : [];
+                allNews = news;
                 loading.classList.add('hidden');
                 renderNews(news);
                 renderAdminNewsList(news);
@@ -854,6 +862,8 @@
 
         // ====================== ӘКІМШІ ======================
         let currentAdmin = null; // { login, pass, name }
+        let allNews = [];        // лентадағы барлық жаңалық (өңдеу үшін)
+        let editingId = null;    // қазір өңделіп жатқан жаңалық id-і (null = жаңасын қосу)
 
         function openAdmin() {
             const m = document.getElementById('adminModal');
@@ -909,9 +919,14 @@
             const file = document.getElementById('newsImage').files[0];
             const wrap = document.getElementById('newsImagePreview');
             const img = document.getElementById('newsImagePreviewImg');
-            if (!file) { wrap.classList.add('hidden'); return; }
+            const removeWrap = document.getElementById('newsRemoveImageWrap');
+            if (!file) { return; }
             img.src = URL.createObjectURL(file);
             wrap.classList.remove('hidden');
+            // жаңа сурет таңдалса, "бұрынғыны өшіру" опциясы керек емес
+            if (removeWrap) removeWrap.classList.add('hidden');
+            const rm = document.getElementById('newsRemoveImage');
+            if (rm) rm.checked = false;
         }
 
         // суретті браузерде қысу (тез жүктелуі үшін, макс ені 1280px)
@@ -935,23 +950,75 @@
             });
         }
 
-        async function publishNews() {
+        function showNewsMsg(text, ok) {
+            const msg = document.getElementById('newsPublishMsg');
+            msg.textContent = text;
+            msg.className = 'text-center text-sm font-medium ' + (ok ? 'text-[#B0FB26]' : 'text-red-400');
+            msg.classList.remove('hidden');
+        }
+
+        // Жаңалықты ӨҢДЕУГЕ ашу: мәтінін формаға жүктейді
+        function startEditNews(id) {
+            const item = allNews.find(n => String(n.id) === String(id));
+            if (!item) return;
+            editingId = id;
+
+            document.getElementById('newsTitle').value = item.title || '';
+            document.getElementById('newsBody').value = item.body || '';
+            document.getElementById('newsImage').value = '';
+            document.getElementById('newsRemoveImage').checked = false;
+
+            document.getElementById('newsFormHeading').textContent = 'Жаңалықты өңдеу';
+            document.getElementById('newsPublishBtnText').textContent = 'Сақтау 💾';
+            document.getElementById('newsCancelBtn').classList.remove('hidden');
+            document.getElementById('newsPublishMsg').classList.add('hidden');
+
+            const prev = document.getElementById('newsImagePreview');
+            const prevImg = document.getElementById('newsImagePreviewImg');
+            const removeWrap = document.getElementById('newsRemoveImageWrap');
+            if (item.imageUrl) {
+                prevImg.src = item.imageUrl;
+                prev.classList.remove('hidden');
+                removeWrap.classList.remove('hidden');
+            } else {
+                prev.classList.add('hidden');
+                removeWrap.classList.add('hidden');
+            }
+            document.getElementById('newsFormHeading').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Өңдеуден бас тарту / форманы тазалап, "жаңа қосу" режиміне қайту
+        function cancelEditNews() {
+            editingId = null;
+            document.getElementById('newsTitle').value = '';
+            document.getElementById('newsBody').value = '';
+            document.getElementById('newsImage').value = '';
+            document.getElementById('newsRemoveImage').checked = false;
+            document.getElementById('newsImagePreview').classList.add('hidden');
+            document.getElementById('newsRemoveImageWrap').classList.add('hidden');
+            document.getElementById('newsFormHeading').textContent = 'Жаңа жаңалық қосу';
+            document.getElementById('newsPublishBtnText').textContent = 'Жариялау 📢';
+            document.getElementById('newsCancelBtn').classList.add('hidden');
+        }
+
+        // Жариялау НЕМЕСЕ сақтау (editingId-ге қарай шешеді)
+        async function submitNews() {
             if (!currentAdmin) return;
             const title = document.getElementById('newsTitle').value.trim();
             const body = document.getElementById('newsBody').value.trim();
             const fileInput = document.getElementById('newsImage');
-            const msg = document.getElementById('newsPublishMsg');
             const btn = document.getElementById('newsPublishBtn');
+            const btnText = document.getElementById('newsPublishBtnText');
+            const isEdit = !!editingId;
 
             if (!title || !body) {
-                msg.textContent = 'Тақырып пен мәтінді толтырыңыз.';
-                msg.className = 'text-center text-sm font-medium text-red-400';
-                msg.classList.remove('hidden');
+                showNewsMsg('Тақырып пен мәтінді толтырыңыз.', false);
                 return;
             }
 
-            btn.disabled = true; btn.textContent = 'Жарияланып жатыр... ⏳';
-            msg.classList.add('hidden');
+            btn.disabled = true;
+            btnText.textContent = isEdit ? 'Сақталып жатыр... ⏳' : 'Жарияланып жатыр... ⏳';
+            document.getElementById('newsPublishMsg').classList.add('hidden');
 
             let imgData = { base64: '', mime: '', name: '' };
             if (fileInput.files[0]) {
@@ -960,7 +1027,6 @@
             }
 
             const payload = {
-                type: 'news',
                 login: currentAdmin.login,
                 pass: currentAdmin.pass,
                 title, body,
@@ -969,24 +1035,24 @@
                 imageName: imgData.name
             };
 
+            if (isEdit) {
+                payload.type = 'updateNews';
+                payload.id = editingId;
+                payload.removeImage = (!imgData.base64 && document.getElementById('newsRemoveImage').checked) ? 'true' : '';
+            } else {
+                payload.type = 'news';
+            }
+
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                msg.textContent = 'Жарияланды! Лента жаңартылуда... ✅';
-                msg.className = 'text-center text-sm font-medium text-[#B0FB26]';
-                msg.classList.remove('hidden');
-                // тазалау
-                document.getElementById('newsTitle').value = '';
-                document.getElementById('newsBody').value = '';
-                fileInput.value = '';
-                document.getElementById('newsImagePreview').classList.add('hidden');
-                // backend жазып үлгеруі үшін кідіріс
+                cancelEditNews(); // форманы тазалап, жаңа қосу режиміне қайтады
+                showNewsMsg(isEdit ? 'Сақталды! Лента жаңартылуда... ✅' : 'Жарияланды! Лента жаңартылуда... ✅', true);
                 setTimeout(loadNews, 3000);
             } catch (e) {
-                msg.textContent = 'Қате орын алды. Қайта көріңіз.';
-                msg.className = 'text-center text-sm font-medium text-red-400';
-                msg.classList.remove('hidden');
+                showNewsMsg('Қате орын алды. Қайта көріңіз.', false);
+                btnText.textContent = isEdit ? 'Сақтау 💾' : 'Жариялау 📢';
             } finally {
-                btn.disabled = false; btn.textContent = 'Жариялау 📢';
+                btn.disabled = false;
             }
         }
 
@@ -1003,7 +1069,10 @@
                         <p class="text-sm text-white font-semibold truncate">${escapeHtml(item.title)}</p>
                         <p class="text-[10px] font-mono text-white/40">${escapeHtml(formatKkDate(item.date))} · ${escapeHtml(item.author)}</p>
                     </div>
-                    <button onclick="deleteNews('${escapeHtml(item.id)}')" class="flex-shrink-0 text-xs font-bold text-red-400 hover:text-red-300 border border-red-400/30 rounded-lg px-3 py-1.5 hover:bg-red-400/10 transition-colors">Өшіру</button>`;
+                    <div class="flex-shrink-0 flex items-center gap-2">
+                        <button onclick="startEditNews('${escapeHtml(item.id)}')" class="text-xs font-bold text-[#B0FB26] hover:text-white border border-[#B0FB26]/30 rounded-lg px-3 py-1.5 hover:bg-[#B0FB26]/10 transition-colors">Өңдеу</button>
+                        <button onclick="deleteNews('${escapeHtml(item.id)}')" class="text-xs font-bold text-red-400 hover:text-red-300 border border-red-400/30 rounded-lg px-3 py-1.5 hover:bg-red-400/10 transition-colors">Өшіру</button>
+                    </div>`;
                 wrap.appendChild(row);
             });
         }

@@ -37,6 +37,43 @@
         ::-webkit-scrollbar-thumb { background: #0000CC; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #B0FB26; }
         .news-body { white-space: pre-wrap; }
+
+        /* ===== Жаңалықтар бөлімінің визуалы ===== */
+        #news {
+            position: relative;
+            background:
+                radial-gradient(900px circle at 12% -5%, rgba(0,0,204,0.28), transparent 45%),
+                radial-gradient(800px circle at 90% 105%, rgba(176,251,38,0.10), transparent 45%),
+                linear-gradient(180deg, #0b0b14 0%, #0e0e1a 100%);
+        }
+        #news::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+            background-size: 40px 40px;
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 80%);
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 80%);
+            pointer-events: none;
+        }
+        #news > * { position: relative; z-index: 1; }
+
+        .ulan-news-card {
+            background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025));
+            border: 1px solid rgba(255,255,255,0.10);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transition: transform .4s cubic-bezier(.2,.7,.2,1), border-color .4s, box-shadow .4s;
+        }
+        .ulan-news-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(176,251,38,0.55);
+            box-shadow: 0 24px 60px -24px rgba(0,0,204,0.65);
+        }
+        .clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+        .clamp-5 { display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; }
     </style>
 </head>
 <body class="antialiased overflow-x-hidden" id="body">
@@ -120,7 +157,7 @@
     </section>
 
     <!-- ============ ЖАҢАЛЫҚТАР ЛЕНТАСЫ ============ -->
-    <section id="news" class="bg-[#111111] py-16 sm:py-24 px-4 sm:px-6 border-b border-white/10">
+    <section id="news" class="py-16 sm:py-24 px-4 sm:px-6 border-b border-white/10">
         <div class="max-w-7xl mx-auto">
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-12 gap-4">
                 <div>
@@ -134,7 +171,7 @@
 
             <div id="newsLoading" class="text-center text-white/40 py-12 font-mono text-sm">Жаңалықтар жүктелуде... ⏳</div>
             <div id="newsEmpty" class="hidden text-center text-white/40 py-12 font-mono text-sm border-2 border-dashed border-white/10 rounded-3xl">Әзірге жаңалық жоқ. Жуырда толтырылады!</div>
-            <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"></div>
+            <div id="newsGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-7"></div>
         </div>
     </section>
 
@@ -592,6 +629,24 @@
         </div>
     </footer>
 
+    <!-- ============ ЖАҢАЛЫҚТЫ ТОЛЫҚ ОҚУ ТЕРЕЗЕСІ ============ -->
+    <div id="newsDetailModal" class="fixed inset-0 bg-black/85 z-[65] flex items-start justify-center p-4 hidden opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="ulan-news-card max-w-2xl w-full my-8 rounded-[28px] overflow-hidden">
+            <div id="newsDetailImageWrap" class="relative hidden">
+                <img id="newsDetailImage" class="w-full max-h-80 object-cover" alt="">
+                <button onclick="closeNewsDetail()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/60 backdrop-blur text-white hover:bg-black flex items-center justify-center text-lg">✕</button>
+            </div>
+            <div class="p-6 sm:p-10">
+                <div class="flex justify-between items-start gap-4 mb-4">
+                    <p id="newsDetailMeta" class="text-[11px] font-mono text-[#B0FB26] uppercase tracking-widest"></p>
+                    <button onclick="closeNewsDetail()" id="newsDetailCloseTop" class="w-9 h-9 flex-shrink-0 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center text-lg">✕</button>
+                </div>
+                <h3 id="newsDetailTitle" class="text-2xl sm:text-4xl font-black text-white mb-5 leading-[1.1] heading-tight"></h3>
+                <p id="newsDetailBody" class="news-body text-sm sm:text-base text-white/80 leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
     <!-- SUCCESS MODAL DIALOG -->
     <div id="successModal" class="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
         <div class="glass-card bg-[#111111] max-w-md w-full p-6 sm:p-8 rounded-[20px] sm:rounded-[24px] text-center border-2 border-[#B0FB26] transform scale-95 transition-transform duration-300 space-y-4 sm:space-y-6">
@@ -835,29 +890,86 @@
         function renderNews(news) {
             const grid = document.getElementById('newsGrid');
             grid.innerHTML = '';
-            news.forEach(item => {
+            news.forEach((item, idx) => {
+                const featured = (idx === 0);
                 const card = document.createElement('article');
-                card.className = 'glass-card rounded-[24px] overflow-hidden flex flex-col hover:border-[#B0FB26] transition-all duration-300 group';
-                const img = item.imageUrl
-                    ? `<div class="aspect-video bg-black/40 overflow-hidden">
-                           <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy"
-                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                onerror="this.parentNode.style.display='none'">
-                       </div>` : '';
-                card.innerHTML = `
-                    ${img}
-                    <div class="p-6 flex flex-col flex-grow">
-                        <div class="flex items-center gap-2 text-[10px] font-mono text-white/40 mb-3 uppercase tracking-wider">
-                            <span class="text-[#B0FB26]">●</span>
-                            <span>${escapeHtml(formatKkDate(item.date))}</span>
-                            <span>·</span>
-                            <span>${escapeHtml(item.author)}</span>
-                        </div>
-                        <h3 class="text-lg font-black text-white mb-2 leading-snug">${escapeHtml(item.title)}</h3>
-                        <p class="news-body text-sm text-white/70 leading-relaxed flex-grow">${escapeHtml(item.body)}</p>
+                card.setAttribute('onclick', `openNewsDetail('${escapeHtml(item.id)}')`);
+
+                const meta = `
+                    <div class="flex items-center gap-2 text-[10px] font-mono text-white/45 mb-3 uppercase tracking-wider">
+                        <span class="text-[#B0FB26]">●</span>
+                        <span>${escapeHtml(formatKkDate(item.date))}</span>
+                        <span>·</span>
+                        <span>${escapeHtml(item.author)}</span>
                     </div>`;
+
+                if (featured) {
+                    card.className = 'ulan-news-card lg:col-span-3 group cursor-pointer rounded-[28px] overflow-hidden';
+                    const img = item.imageUrl
+                        ? `<div class="relative overflow-hidden aspect-video lg:aspect-auto lg:min-h-[320px]">
+                               <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                    onerror="this.closest('.relative').style.display='none'">
+                               <div class="absolute top-4 left-4 bg-[#B0FB26] text-[#111111] text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Басты жаңалық</div>
+                           </div>` : '';
+                    card.innerHTML = `
+                        <div class="grid grid-cols-1 ${item.imageUrl ? 'lg:grid-cols-2' : ''}">
+                            ${img}
+                            <div class="p-7 sm:p-10 flex flex-col justify-center">
+                                ${meta}
+                                <h3 class="text-2xl sm:text-4xl font-black text-white mb-4 leading-[1.05] heading-tight">${escapeHtml(item.title)}</h3>
+                                <p class="news-body clamp-5 text-sm sm:text-base text-white/70 leading-relaxed">${escapeHtml(item.body)}</p>
+                                <span class="mt-5 inline-flex items-center gap-1.5 text-[#B0FB26] font-bold text-sm group-hover:gap-3 transition-all">Толық оқу <span>→</span></span>
+                            </div>
+                        </div>`;
+                } else {
+                    card.className = 'ulan-news-card group cursor-pointer rounded-[24px] overflow-hidden flex flex-col';
+                    const img = item.imageUrl
+                        ? `<div class="aspect-video overflow-hidden">
+                               <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    onerror="this.parentNode.style.display='none'">
+                           </div>` : '';
+                    card.innerHTML = `
+                        ${img}
+                        <div class="p-6 flex flex-col flex-grow">
+                            ${meta}
+                            <h3 class="text-lg font-black text-white mb-2 leading-snug">${escapeHtml(item.title)}</h3>
+                            <p class="news-body clamp-3 text-sm text-white/65 leading-relaxed flex-grow">${escapeHtml(item.body)}</p>
+                            <span class="mt-4 inline-flex items-center gap-1.5 text-[#B0FB26] font-bold text-xs group-hover:gap-3 transition-all">Толық оқу <span>→</span></span>
+                        </div>`;
+                }
                 grid.appendChild(card);
             });
+        }
+
+        // Жаңалықты толық оқу терезесі
+        function openNewsDetail(id) {
+            const item = allNews.find(n => String(n.id) === String(id));
+            if (!item) return;
+            const m = document.getElementById('newsDetailModal');
+            const img = document.getElementById('newsDetailImageWrap');
+            if (item.imageUrl) {
+                document.getElementById('newsDetailImage').src = item.imageUrl;
+                img.classList.remove('hidden');
+                document.getElementById('newsDetailCloseTop').classList.add('hidden');
+            } else {
+                img.classList.add('hidden');
+                document.getElementById('newsDetailCloseTop').classList.remove('hidden');
+            }
+            document.getElementById('newsDetailMeta').textContent =
+                formatKkDate(item.date) + ' · ' + (item.author || '');
+            document.getElementById('newsDetailTitle').textContent = item.title || '';
+            document.getElementById('newsDetailBody').textContent = item.body || '';
+            m.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => m.classList.remove('opacity-0'), 30);
+        }
+        function closeNewsDetail() {
+            const m = document.getElementById('newsDetailModal');
+            m.classList.add('opacity-0');
+            document.body.style.overflow = '';
+            setTimeout(() => m.classList.add('hidden'), 300);
         }
 
         // ====================== ӘКІМШІ ======================

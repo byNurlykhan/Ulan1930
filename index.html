@@ -641,6 +641,7 @@
                     <p id="newsDetailMeta" class="text-[11px] font-mono text-[#B0FB26] uppercase tracking-widest"></p>
                     <button onclick="closeNewsDetail()" id="newsDetailCloseTop" class="w-9 h-9 flex-shrink-0 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center text-lg">✕</button>
                 </div>
+                <span id="newsDetailRubric" class="hidden mb-4 inline-block bg-[#B0FB26] text-[#111111] text-[11px] font-black uppercase tracking-[0.14em] px-3 py-1 rounded-full"></span>
                 <h3 id="newsDetailTitle" class="text-2xl sm:text-4xl font-black text-white mb-5 leading-[1.1] heading-tight"></h3>
                 <p id="newsDetailBody" class="news-body text-sm sm:text-base text-white/80 leading-relaxed"></p>
             </div>
@@ -699,6 +700,21 @@
                     <div class="flex items-center justify-between gap-3">
                         <h4 id="newsFormHeading" class="text-lg font-black uppercase text-white">Жаңа жаңалық қосу</h4>
                         <button id="newsCancelBtn" onclick="cancelEditNews()" class="hidden text-xs font-mono text-white/50 hover:text-[#B0FB26] underline whitespace-nowrap">↩ Жаңасын қосуға оралу</button>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-mono uppercase tracking-widest text-white/70">Рубрика (міндетті емес)</label>
+                        <input type="text" id="newsRubric" list="rubricSuggestions" maxlength="24" class="w-full bg-black/40 text-white px-4 py-3 rounded-xl border-2 border-white/10 focus:border-[#B0FB26] focus:outline-none font-medium" placeholder="Мысалы: Алақай! / Хабарландыру / Мақтаныш">
+                        <datalist id="rubricSuggestions">
+                            <option value="Алақай!"></option>
+                            <option value="Жаңалық"></option>
+                            <option value="Хабарландыру"></option>
+                            <option value="Мақтаныш"></option>
+                            <option value="Оқиға"></option>
+                            <option value="Кеңес"></option>
+                            <option value="Сұхбат"></option>
+                            <option value="Байқау"></option>
+                        </datalist>
+                        <p class="text-[10px] text-white/40">Тақырып үстінде кішкентай жасыл белгі болып шығады.</p>
                     </div>
                     <div class="space-y-1.5">
                         <label class="block text-xs font-mono uppercase tracking-widest text-white/70">Тақырып *</label>
@@ -903,6 +919,10 @@
                         <span>${escapeHtml(item.author)}</span>
                     </div>`;
 
+                const rubricBadge = item.rubric
+                    ? `<span class="inline-block bg-[#B0FB26] text-[#111111] text-[10px] sm:text-[11px] font-black uppercase tracking-[0.14em] px-3 py-1 rounded-full mb-3 shadow-[0_4px_14px_-4px_rgba(176,251,38,0.6)]">${escapeHtml(item.rubric)}</span>`
+                    : '';
+
                 if (featured) {
                     card.className = 'ulan-news-card lg:col-span-3 group cursor-pointer rounded-[28px] overflow-hidden';
                     const img = item.imageUrl
@@ -916,6 +936,7 @@
                         <div class="grid grid-cols-1 ${item.imageUrl ? 'lg:grid-cols-2' : ''}">
                             ${img}
                             <div class="p-7 sm:p-10 flex flex-col justify-center">
+                                ${rubricBadge}
                                 ${meta}
                                 <h3 class="text-2xl sm:text-4xl font-black text-white mb-4 leading-[1.05] heading-tight">${escapeHtml(item.title)}</h3>
                                 <p class="news-body clamp-5 text-sm sm:text-base text-white/70 leading-relaxed">${escapeHtml(item.body)}</p>
@@ -933,6 +954,7 @@
                     card.innerHTML = `
                         ${img}
                         <div class="p-6 flex flex-col flex-grow">
+                            ${rubricBadge}
                             ${meta}
                             <h3 class="text-lg font-black text-white mb-2 leading-snug">${escapeHtml(item.title)}</h3>
                             <p class="news-body clamp-3 text-sm text-white/65 leading-relaxed flex-grow">${escapeHtml(item.body)}</p>
@@ -959,6 +981,9 @@
             }
             document.getElementById('newsDetailMeta').textContent =
                 formatKkDate(item.date) + ' · ' + (item.author || '');
+            const rb = document.getElementById('newsDetailRubric');
+            if (item.rubric) { rb.textContent = item.rubric; rb.classList.remove('hidden'); }
+            else { rb.classList.add('hidden'); }
             document.getElementById('newsDetailTitle').textContent = item.title || '';
             document.getElementById('newsDetailBody').textContent = item.body || '';
             m.classList.remove('hidden');
@@ -1076,6 +1101,7 @@
             editingId = id;
 
             document.getElementById('newsTitle').value = item.title || '';
+            document.getElementById('newsRubric').value = item.rubric || '';
             document.getElementById('newsBody').value = item.body || '';
             document.getElementById('newsImage').value = '';
             document.getElementById('newsRemoveImage').checked = false;
@@ -1103,6 +1129,7 @@
         function cancelEditNews() {
             editingId = null;
             document.getElementById('newsTitle').value = '';
+            document.getElementById('newsRubric').value = '';
             document.getElementById('newsBody').value = '';
             document.getElementById('newsImage').value = '';
             document.getElementById('newsRemoveImage').checked = false;
@@ -1117,6 +1144,7 @@
         async function submitNews() {
             if (!currentAdmin) return;
             const title = document.getElementById('newsTitle').value.trim();
+            const rubric = document.getElementById('newsRubric').value.trim();
             const body = document.getElementById('newsBody').value.trim();
             const fileInput = document.getElementById('newsImage');
             const btn = document.getElementById('newsPublishBtn');
@@ -1141,7 +1169,7 @@
             const payload = {
                 login: currentAdmin.login,
                 pass: currentAdmin.pass,
-                title, body,
+                title, body, rubric,
                 image: imgData.base64,
                 imageMime: imgData.mime,
                 imageName: imgData.name

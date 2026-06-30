@@ -228,6 +228,19 @@
                             <span class="inline-block bg-[#B0FB26] text-[#111111] text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">🏆 Айдың үздігі</span>
                             <h3 id="bestName" class="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2 heading-tight">—</h3>
                             <p class="text-white/60 text-sm sm:text-base font-medium max-w-md">Бір ай бойы тоқтаусыз мақала жазып, газетке жариялаған ең белсенді автор. Құтты болсын!</p>
+                            <div id="bestProgress" class="mt-4 max-w-xs hidden">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-[11px] font-bold text-white/70 uppercase tracking-widest">«Жас тілші» куәлігіне дейін</span>
+                                    <span id="bestProgressNum" class="text-sm font-black text-[#B0FB26]">0/7</span>
+                                </div>
+                                <div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+                                    <div id="bestProgressBar" class="h-full bg-[#B0FB26] rounded-full transition-all duration-500" style="width:0%"></div>
+                                </div>
+                            </div>
+                            <button id="bestCertBtn" onclick="downloadBestCert()" class="mt-4 bg-[#0000CC] text-white font-black uppercase tracking-wide px-5 py-3 rounded-xl hover:bg-black transition-colors text-xs sm:text-sm inline-flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M4 6h16M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg>
+                                Сертификатты жүктеу (PDF)
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -239,6 +252,13 @@
                     <div id="candidatesList" class="space-y-2"></div>
                     <div id="candidatesEmpty" class="hidden text-white/40 font-mono text-sm py-4">Әзірге үміткер жоқ.</div>
                 </div>
+            </div>
+
+            <div class="mt-6 flex items-start gap-3 bg-[#B0FB26]/10 border border-[#B0FB26]/30 rounded-2xl px-5 py-4">
+                <span class="text-xl sm:text-2xl flex-shrink-0">🎖️</span>
+                <p class="text-white/80 text-xs sm:text-sm font-medium leading-relaxed">
+                    <span class="text-[#B0FB26] font-bold">7 «Айдың үздік тілшісі» сертификатын</span> жинаған тілшіге газеттің ресми <span class="text-[#B0FB26] font-bold">«Жас тілші» куәлігі</span> беріледі. Куәліктің түпнұсқасын тек редакциядан алуға болады.
+                </p>
             </div>
         </div>
     </section>
@@ -928,6 +948,7 @@
                         </div>
                         <button id="bestSaveBtn" onclick="saveBest()" class="w-full bg-[#B0FB26] text-[#111111] font-black uppercase tracking-wide py-3 rounded-xl hover:bg-white transition-colors">Үздік тілшіні сақтау 🏆</button>
                         <p id="bestSaveMsg" class="text-center text-sm font-medium hidden"></p>
+                        <p class="text-[11px] text-white/40 leading-relaxed">Жаңа жеңімпаз (есім өзгерсе) жарияланғанда оған автоматты түрде <span class="text-[#B0FB26]">+1 куәлік</span> қосылады. Қажет болса, төмендегі тізімнен әр тілшінің куәлік санын қолмен реттеуге болады.</p>
                     </div>
 
                     <div class="space-y-3 border-t border-white/10 pt-5">
@@ -1312,6 +1333,7 @@
 
         // ====================== АЙДЫҢ ҮЗДІК ТІЛШІСІ ======================
         let allCandidates = [];
+        let currentBest = { name: '', photoUrl: '' };
 
         async function loadBestReporter() {
             try {
@@ -1332,6 +1354,7 @@
         }
 
         function renderBest(best) {
+            currentBest = best || { name: '', photoUrl: '' };
             const empty = document.getElementById('bestEmpty');
             const content = document.getElementById('bestContent');
             if (!empty || !content) return;
@@ -1349,6 +1372,7 @@
             } else {
                 img.classList.add('hidden'); ph.classList.remove('hidden');
             }
+            updateBestProgress();
         }
 
         function renderCandidates(list) {
@@ -1356,17 +1380,39 @@
             const empty = document.getElementById('candidatesEmpty');
             if (!el) return;
             el.innerHTML = '';
-            if (!list.length) { empty.classList.remove('hidden'); return; }
+            if (!list.length) { empty.classList.remove('hidden'); updateBestProgress(); return; }
             empty.classList.add('hidden');
             list.forEach((c, i) => {
+                const pct = Math.min(100, Math.round((c.certs / 7) * 100));
                 const row = document.createElement('div');
-                row.className = 'flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3 border border-white/10';
+                row.className = 'bg-white/5 rounded-xl px-4 py-3 border border-white/10';
                 row.innerHTML =
+                    '<div class="flex items-center gap-3">' +
                     '<span class="w-7 h-7 flex-shrink-0 rounded-lg ' + (i === 0 ? 'bg-[#B0FB26] text-[#111111]' : 'bg-white/10 text-white') + ' flex items-center justify-center font-black text-sm">' + (i + 1) + '</span>' +
                     '<span class="flex-grow text-white font-semibold truncate">' + escapeHtml(c.name) + '</span>' +
-                    '<span class="flex-shrink-0 text-[#B0FB26] font-bold text-sm">' + c.count + ' мақала</span>';
+                    '<span class="flex-shrink-0 text-white/50 text-xs font-medium">' + c.count + ' мақала</span>' +
+                    '<span class="flex-shrink-0 text-[#B0FB26] font-black text-xs whitespace-nowrap">🎖️ ' + c.certs + '/7</span>' +
+                    '</div>' +
+                    '<div class="h-1.5 bg-white/10 rounded-full overflow-hidden mt-2"><div class="h-full bg-[#B0FB26] rounded-full" style="width:' + pct + '%"></div></div>';
                 el.appendChild(row);
             });
+            updateBestProgress();
+        }
+
+        function updateBestProgress() {
+            const wrap = document.getElementById('bestProgress');
+            if (!wrap) return;
+            const name = (currentBest && currentBest.name) ? currentBest.name.trim().toLowerCase() : '';
+            let certs = 0;
+            if (name) {
+                const c = allCandidates.find(x => (x.name || '').trim().toLowerCase() === name);
+                if (c) certs = c.certs || 0;
+            }
+            const num = document.getElementById('bestProgressNum');
+            const bar = document.getElementById('bestProgressBar');
+            if (num) num.textContent = certs + '/7';
+            if (bar) bar.style.width = Math.min(100, Math.round((certs / 7) * 100)) + '%';
+            wrap.classList.toggle('hidden', !(currentBest && currentBest.name));
         }
 
         async function saveBest() {
@@ -1422,6 +1468,109 @@
             } catch (e) {}
         }
 
+        // «Айдың үздік тілшісі» сертификаты (аты автоматты)
+        function certNowFull() {
+            var base = certToday();
+            var d = new Date();
+            var hh = ('0' + d.getHours()).slice(-2);
+            var mm = ('0' + d.getMinutes()).slice(-2);
+            return base + ' ж., ' + hh + ':' + mm;
+        }
+
+        function drawBestCertificate(canvas, name) {
+            const W = 2000, H = 1414, cx = W / 2;
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#fdfdfb'; ctx.fillRect(0, 0, W, H);
+            ctx.strokeStyle = '#0000CC'; ctx.lineWidth = 14;
+            certRoundRect(ctx, 40, 40, W - 80, H - 80, 28); ctx.stroke();
+            ctx.strokeStyle = 'rgba(0,0,204,0.35)'; ctx.lineWidth = 3;
+            certRoundRect(ctx, 70, 70, W - 140, H - 140, 18); ctx.stroke();
+
+            // Логотип
+            const headMid = 185;
+            if (certLogoReady) {
+                const lh = 120, lw = lh * (certLogoImg.width / certLogoImg.height);
+                ctx.drawImage(certLogoImg, cx - lw / 2, headMid - lh / 2, lw, lh);
+            }
+            ctx.textAlign = 'center';
+
+            // СЕРТИФИКАТ
+            ctx.fillStyle = '#affa27'; ctx.font = '800 100px Inter, Arial, sans-serif';
+            ctx.fillText('СЕРТИФИКАТ', cx, 370);
+            ctx.fillStyle = '#B0FB26';
+            certRoundRect(ctx, cx - 95, 410, 190, 9, 5); ctx.fill();
+
+            // Мәтін
+            let y = 525;
+            ctx.fillStyle = '#444444'; ctx.font = '400 36px Inter, Arial, sans-serif';
+            y = certWrap(ctx, 'Осы сертификат «Ұлан» балалар мен жасөспірімдерге арналған', cx, y, 1620, 52);
+            y = certWrap(ctx, 'мемлекеттік газетінің «Айдың үздік тілшісі» болғаны үшін', cx, y, 1620, 52);
+
+            // Аты-жөні
+            y += 70;
+            let ns = 90; ctx.font = '800 ' + ns + 'px Inter, Arial, sans-serif';
+            while (ctx.measureText(name).width > W - 360 && ns > 42) {
+                ns -= 4; ctx.font = '800 ' + ns + 'px Inter, Arial, sans-serif';
+            }
+            ctx.fillStyle = '#0000CC'; ctx.fillText(name, cx, y);
+            const uW = Math.min(Math.max(ctx.measureText(name).width + 120, 900), W - 300);
+            ctx.strokeStyle = '#0000CC'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(cx - uW / 2, y + 40); ctx.lineTo(cx + uW / 2, y + 40); ctx.stroke();
+            ctx.fillStyle = '#999999'; ctx.font = '400 26px Inter, Arial, sans-serif';
+            ctx.fillText('(аты-жөні)', cx, y + 80);
+
+            // беріледі.
+            y += 165;
+            ctx.fillStyle = '#444444'; ctx.font = '400 36px Inter, Arial, sans-serif';
+            ctx.fillText('беріледі.', cx, y);
+
+            // Төменгі жол: сол — сайт + күн/уақыт, оң — мөр
+            if (certSealReady) {
+                const sw = 290, sh = sw * (certSealImg.height / certSealImg.width);
+                ctx.drawImage(certSealImg, W - 150 - sw, H - 80 - sh, sw, sh);
+            }
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#0000CC'; ctx.font = '800 36px Inter, Arial, sans-serif';
+            ctx.fillText('ulandigital.kz', 150, H - 215);
+            ctx.fillStyle = '#555555'; ctx.font = '400 30px Inter, Arial, sans-serif';
+            ctx.fillText(certNowFull(), 150, H - 160);
+            ctx.fillStyle = '#999999'; ctx.font = '400 24px Inter, Arial, sans-serif';
+            ctx.fillText('(күні, айы, жылы, уақыты)', 150, H - 120);
+            ctx.textAlign = 'center';
+        }
+
+        function downloadBestCert() {
+            const name = (currentBest && currentBest.name) ? currentBest.name : '';
+            if (!name) { alert('Әзірге үздік тілші белгіленбеген.'); return; }
+            const canvas = document.createElement('canvas');
+            drawBestCertificate(canvas, name);
+            let safe = 'sertifikat';
+            try { safe = (name.replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40)) || 'sertifikat'; }
+            catch (e) { safe = name.replace(/[^A-Za-z0-9]+/g, '_').slice(0, 40) || 'sertifikat'; }
+            if (!(window.jspdf && window.jspdf.jsPDF)) {
+                // PDF болмаса, кемі сурет
+                const a = document.createElement('a');
+                a.download = 'Ulan_uzdik_' + safe + '.jpg';
+                a.href = canvas.toDataURL('image/jpeg', 0.95);
+                a.click();
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+            pdf.save('Ulan_uzdik_tilshi_' + safe + '.pdf');
+        }
+
+        async function adjustCertUI(id, delta) {
+            if (!currentAdmin || currentAdmin.login !== 'nurlykhan') return;
+            try {
+                await jsonp({ action: 'adjustCert', login: currentAdmin.login, pass: currentAdmin.pass, id: id, delta: delta });
+                loadBestReporter();
+            } catch (e) {}
+        }
+
         function renderAdminCandidates(list) {
             const el = document.getElementById('adminCandList');
             if (!el) return;
@@ -1430,15 +1579,33 @@
             list.forEach(function (c) {
                 const row = document.createElement('div');
                 row.className = 'flex items-center justify-between gap-2 bg-white/5 rounded-lg px-3 py-2 border border-white/10';
-                const info = document.createElement('span');
-                info.className = 'text-white text-sm font-semibold truncate';
-                info.textContent = c.name + ' · ' + c.count + ' мақала';
-                const btn = document.createElement('button');
-                btn.className = 'flex-shrink-0 text-xs font-bold text-red-400 hover:text-red-300 border border-red-400/30 rounded px-2 py-1';
-                btn.textContent = 'Өшіру';
-                btn.addEventListener('click', function () { deleteCandidateUI(c.id); });
-                row.appendChild(info);
-                row.appendChild(btn);
+                const info = document.createElement('div');
+                info.className = 'min-w-0';
+                const nm = document.createElement('div');
+                nm.className = 'text-white text-sm font-semibold truncate';
+                nm.textContent = c.name;
+                const meta = document.createElement('div');
+                meta.className = 'text-white/40 text-xs';
+                meta.textContent = c.count + ' мақала · 🎖️ ' + c.certs + '/7';
+                info.appendChild(nm); info.appendChild(meta);
+
+                const ctrls = document.createElement('div');
+                ctrls.className = 'flex items-center gap-1 flex-shrink-0';
+                const minus = document.createElement('button');
+                minus.className = 'w-7 h-7 rounded-lg bg-white/10 text-white font-black hover:bg-white/20';
+                minus.textContent = '−'; minus.title = 'Куәлік −1';
+                minus.addEventListener('click', function () { adjustCertUI(c.id, -1); });
+                const plus = document.createElement('button');
+                plus.className = 'w-7 h-7 rounded-lg bg-[#B0FB26] text-[#111111] font-black hover:bg-white';
+                plus.textContent = '+'; plus.title = 'Куәлік +1';
+                plus.addEventListener('click', function () { adjustCertUI(c.id, 1); });
+                const del = document.createElement('button');
+                del.className = 'text-xs font-bold text-red-400 hover:text-red-300 border border-red-400/30 rounded px-2 py-1 ml-1';
+                del.textContent = 'Өшіру';
+                del.addEventListener('click', function () { deleteCandidateUI(c.id); });
+                ctrls.appendChild(minus); ctrls.appendChild(plus); ctrls.appendChild(del);
+
+                row.appendChild(info); row.appendChild(ctrls);
                 el.appendChild(row);
             });
         }

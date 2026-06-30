@@ -217,47 +217,56 @@
                         <svg viewBox="0 0 100 100" fill="currentColor"><circle cx="50" cy="50" r="50"/></svg>
                     </div>
                     <div id="bestEmpty" class="hidden text-center py-10 text-white/40 font-mono text-sm">Әзірге үздік тілші белгіленбеген.</div>
-                    <div id="bestContent" class="flex flex-col sm:flex-row items-center gap-6 relative">
-                        <div class="flex-shrink-0">
-                            <div id="bestPhotoWrap" class="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden border-2 border-[#B0FB26] bg-white/5 flex items-center justify-center">
-                                <img id="bestPhoto" class="w-full h-full object-cover hidden" alt="Үздік тілші">
-                                <svg id="bestPhotoPlaceholder" class="w-16 h-16 text-white/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 0 1 8 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <div id="bestContent" class="relative">
+                        <div class="rounded-[22px] overflow-hidden border border-white/15 bg-gradient-to-br from-[#0000CC]/25 to-black/30">
+                            <div class="flex items-center justify-between px-5 sm:px-6 py-3 bg-[#0000CC]">
+                                <div class="flex items-center gap-2 text-white">
+                                    <span class="font-black tracking-[0.35em] text-sm">PRESS</span>
+                                    <span class="text-white/60 text-xs font-bold">· «ҰЛАН»</span>
+                                </div>
+                                <span class="bg-[#B0FB26] text-[#111111] text-[10px] sm:text-xs font-black uppercase px-3 py-1 rounded-full whitespace-nowrap">🏆 <span id="bestTimes">1</span>× ҮЗДІК</span>
+                            </div>
+                            <div class="flex gap-4 sm:gap-6 p-5 sm:p-6">
+                                <div class="flex-shrink-0">
+                                    <div id="bestPhotoWrap" class="w-28 h-32 sm:w-32 sm:h-40 rounded-xl overflow-hidden border-2 border-[#B0FB26] bg-white/5 flex items-center justify-center">
+                                        <img id="bestPhoto" class="w-full h-full object-cover hidden" alt="Үздік тілші">
+                                        <svg id="bestPhotoPlaceholder" class="w-14 h-14 text-white/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 0 1 8 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    </div>
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <div class="text-[10px] uppercase tracking-widest text-white/50 font-bold mb-0.5">Аты-жөні</div>
+                                    <h3 id="bestName" class="text-xl sm:text-3xl font-black text-white mb-3 heading-tight truncate">—</h3>
+                                    <div class="inline-block bg-[#B0FB26] text-[#111111] text-[10px] sm:text-xs font-black uppercase tracking-wide px-3 py-1 rounded-full mb-4">★ Айдың үздік тілшісі</div>
+                                    <div class="flex items-end justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="text-[10px] uppercase tracking-widest text-white/50 font-bold">Берілген күні</div>
+                                            <div id="bestDate" class="text-white font-bold text-sm">—</div>
+                                            <div class="text-[#B0FB26] font-black text-xs mt-2">ulandigital.kz</div>
+                                        </div>
+                                        <img id="bestSealImg" class="w-16 h-16 sm:w-20 sm:h-20 object-contain flex-shrink-0 opacity-95" alt="«Ұлан» мөрі">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="text-center sm:text-left">
-                            <span class="inline-block bg-[#B0FB26] text-[#111111] text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">🏆 Айдың үздігі</span>
-                            <h3 id="bestName" class="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-2 heading-tight">—</h3>
-                            <p class="text-white/60 text-sm sm:text-base font-medium max-w-md">Бір ай бойы тоқтаусыз мақала жазып, газетке жариялаған ең белсенді автор. Құтты болсын!</p>
-                            <div id="bestProgress" class="mt-4 max-w-xs hidden">
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <span class="text-[11px] font-bold text-white/70 uppercase tracking-widest">«Жас тілші» куәлігіне дейін</span>
-                                    <span id="bestProgressNum" class="text-sm font-black text-[#B0FB26]">0/7</span>
-                                </div>
-                                <div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
-                                    <div id="bestProgressBar" class="h-full bg-[#B0FB26] rounded-full transition-all duration-500" style="width:0%"></div>
-                                </div>
-                            </div>
-                            <button id="bestCertBtn" onclick="downloadBestCert()" class="mt-4 bg-[#0000CC] text-white font-black uppercase tracking-wide px-5 py-3 rounded-xl hover:bg-black transition-colors text-xs sm:text-sm inline-flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M4 6h16M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg>
-                                Сертификатты жүктеу (PDF)
-                            </button>
-                        </div>
+                        <button id="bestCertBtn" onclick="downloadBestCert()" class="mt-4 bg-[#0000CC] text-white font-black uppercase tracking-wide px-5 py-3 rounded-xl hover:bg-black transition-colors text-xs sm:text-sm inline-flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M4 6h16M5 6l1 14a2 2 0 002 2h8a2 2 0 002-2l1-14"/></svg>
+                            Куәлік сертификатты жүктеу (PDF)
+                        </button>
                     </div>
                 </div>
 
                 <!-- Үміткерлер -->
                 <div class="lg:col-span-2 glass-card rounded-[28px] p-6 sm:p-8">
                     <h3 class="text-lg font-black uppercase text-[#B0FB26] mb-1">Үміткерлер тізімі</h3>
-                    <p class="text-white/50 text-xs mb-4">Аты-жөні және жазған мақала саны</p>
+                    <p class="text-white/50 text-xs mb-4">«Айдың үздік тілшісі» атағына үміткер тілшілер</p>
                     <div id="candidatesList" class="space-y-2"></div>
                     <div id="candidatesEmpty" class="hidden text-white/40 font-mono text-sm py-4">Әзірге үміткер жоқ.</div>
                 </div>
             </div>
 
-            <div class="mt-6 flex items-start gap-3 bg-[#B0FB26]/10 border border-[#B0FB26]/30 rounded-2xl px-5 py-4">
-                <span class="text-xl sm:text-2xl flex-shrink-0">🎖️</span>
+            <div class="mt-6 bg-[#B0FB26]/10 border border-[#B0FB26]/30 rounded-2xl px-5 py-4">
                 <p class="text-white/80 text-xs sm:text-sm font-medium leading-relaxed">
-                    <span class="text-[#B0FB26] font-bold">7 «Айдың үздік тілшісі» сертификатын</span> жинаған тілшіге газеттің ресми <span class="text-[#B0FB26] font-bold">«Жас тілші» куәлігі</span> беріледі. Куәліктің түпнұсқасын тек редакциядан алуға болады.
+                    <span class="text-[#B0FB26] font-bold">«Айдың үздік тілшісі» сертификатын 10+</span> жинаған тілшіге газеттің ресми <span class="text-[#B0FB26] font-bold">«Жас тілші» куәлігі</span> беріледі. Үздіктерді тек мақала санына ғана емес, сапасымен де анықтаймыз. Куәліктің түпнұсқасын тек редакциядан алуға болады.
                 </p>
             </div>
         </div>
@@ -272,13 +281,18 @@
                     <h2 class="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight uppercase heading-tight text-white">Соңғы жаңалықтар</h2>
                 </div>
                 <p class="text-white/60 max-w-md text-sm sm:text-base font-medium">
-                    «Ұлан» редакциясының күнделікті жаңалықтары, хабарландырулары мен оқиғалары.
+                    «Ұланның» жаңалықтары мен хабарландырулары
                 </p>
             </div>
 
             <div id="newsLoading" class="text-center text-white/40 py-12 font-mono text-sm">Жаңалықтар жүктелуде... ⏳</div>
             <div id="newsEmpty" class="hidden text-center text-white/40 py-12 font-mono text-sm border-2 border-dashed border-white/10 rounded-3xl">Әзірге жаңалық жоқ. Жуырда толтырылады!</div>
             <div id="newsGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-7"></div>
+            <div id="newsMoreWrap" class="hidden text-center mt-8 sm:mt-10">
+                <button id="newsMoreBtn" onclick="showMoreNews()" class="inline-flex items-center gap-2 bg-white/5 hover:bg-[#B0FB26] hover:text-[#111111] text-white border border-white/15 font-black uppercase tracking-widest text-sm px-7 py-3.5 rounded-full transition-colors">
+                    Тағы да <span class="text-[#B0FB26] group-hover:text-[#111111]" id="newsMoreCount"></span> <span>↓</span>
+                </button>
+            </div>
         </div>
     </section>
 
@@ -344,9 +358,9 @@
                     <div class="group bg-[#0000CC] text-white p-6 rounded-[24px] hover:scale-[1.02] transition-all duration-300 flex flex-col justify-between shadow-lg">
                         <div>
                             <div class="w-8 h-8 rounded-lg bg-[#B0FB26] text-[#111111] flex items-center justify-center font-black text-sm mb-4">A</div>
-                            <h3 class="text-lg font-black uppercase mb-2 text-[#B0FB26]">Өз әлемінен баста</h3>
+                            <h3 class="text-lg font-black uppercase mb-2 text-[#B0FB26]">Өз әлеміңнен баста</h3>
                             <p class="text-white/90 text-sm font-medium leading-relaxed">
-                                Өз әлемінен баста — мектеп, достар, спорт, хобби, кітаптар мен жобалар туралы жаз. Бұл ең сенімді әрі қызықты тақырыптар.
+                                Өз әлеміңнен баста — мектеп, достар, спорт, хобби, кітаптар мен жобалар туралы жаз. Бұл ең сенімді әрі қызықты тақырыптар.
                             </p>
                         </div>
                     </div>
@@ -489,7 +503,7 @@
         <div class="max-w-3xl mx-auto">
             <div class="text-center mb-10 sm:mb-12">
                 <span class="bg-[#B0FB26] text-[#111111] font-mono text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wider">Анонимдік айдар</span>
-                <h2 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight uppercase text-white mt-4">«Жасөспірімдердің досы»</h2>
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight uppercase text-white mt-4">«Ержеттім... Бойжеттім...»</h2>
                 <p class="text-white/80 mt-2 text-sm sm:text-base font-medium">Ішкі сырыңмен, ешкімге айта алмаған уайымыңмен анонимді түрде бөліс. Біз сені қолдаймыз.</p>
             </div>
 
@@ -558,7 +572,7 @@
                     «Ұлан» — 1930 жылдың 14 наурызынан бастап жарық көріп келе жатқан республикалық балалар мен жасөспірімдер газеті. Әр жылдары «Пионер», «Қазақстан пионері» деген атаулармен шықты. Бұл жай ғана газет емес — бұл Қазақстанның белгілі жазушылары мен журналистерінің алғашқы қадамы басталған үлкен шығармашылық мектеп.
                 </p>
                 <div class="p-4 sm:p-6 bg-gray-50 border-l-4 border-[#0000CC] rounded-r-2xl">
-                    <p class="italic text-gray-600 text-xs sm:text-base font-medium">"«Ұланнан» қанат қағып, еліміздің бас баспасөз саласын басқарып отырған жүздеген кәсіби журналистер бар. Ендігі кезек — сенікі!"</p>
+                    <p class="italic text-gray-600 text-xs sm:text-base font-medium">«Ұланнан» қанат қағып, еліміздің бас баспасөз саласын басқарып отырған жүздеген кәсіби журналистер бар. Ендігі кезек — сенікі!</p>
                 </div>
             </div>
 
@@ -570,7 +584,7 @@
                     <div class="flex justify-between items-start mb-6">
                         <div>
                             <h4 class="text-lg sm:text-xl font-black text-[#B0FB26] uppercase">«Жас тілші» куәлігі</h4>
-                            <p class="text-[10px] sm:text-xs text-white/60 font-mono">СТАТУС: АШЫҚ</p>
+                            <p class="text-[10px] sm:text-xs text-white/60 font-mono">СТАТУС: АШЫҚ. Көп мақала жаз, бәрін басып оз!</p>
                         </div>
                         <span class="text-[10px] sm:text-xs font-mono border border-white/20 px-2 py-1 rounded">ID: 2026-ULAN</span>
                     </div>
@@ -590,7 +604,7 @@
             <div class="mb-12 sm:mb-16">
                 <span class="text-[#B0FB26] font-mono text-xs font-bold tracking-widest uppercase block mb-2">// ШЫҒАРМАШЫЛЫҚ ҰЖЫМ</span>
                 <h2 class="text-3xl sm:text-5xl font-black tracking-tight uppercase heading-tight">Біздің редакция</h2>
-                <p class="text-white/60 mt-3 text-sm sm:text-base max-w-xl">Газеттің әрбір санын сапалы әрі қызықты етіп шығару жолында еңбек етіп жүрген «Ұланның» негізгі жүрегі.</p>
+                <p class="text-white/60 mt-3 text-sm sm:text-base max-w-xl">Газеттің әрбір санын сапалы әрі қызықты етіп шығару жолында еңбек етіп жүрген «Ұланның» достары.</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 lg:gap-8 auto-rows-fr">
@@ -764,7 +778,7 @@
                         <span style="display:none" class="text-2xl font-black text-[#F14635] tracking-tight">Kaspi.kz</span>
                     </div>
                     <p class="text-white/80 text-sm sm:text-base font-medium leading-relaxed">
-                        QR кодты <strong class="text-white">Kaspi.kz</strong> қолданбасының камерасымен сканерлеңіз — немесе төмендегі түймені басыңыз. Жазылым бірден ресімделеді.
+                        QR кодты <strong class="text-white">Kaspi.kz</strong> қолданбасының камерасымен сканерлеңіз — немесе төмендегі түймені басыңыз. «Ұлан» газетін таңдаңыз. Жазылым бірден ресімделеді.
                     </p>
                     <a href="https://kaspi.kz/pay/KAZAKHGAZETTERI?9446=16&started_from=QR" target="_blank" rel="noopener"
                        class="inline-flex items-center justify-center gap-2 bg-[#F14635] text-white text-base sm:text-lg font-black px-7 py-4 rounded-2xl shadow-lg hover:bg-[#d63a2b] hover:scale-[1.03] transition-all duration-300">
@@ -783,7 +797,7 @@
             <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="text-center md:text-left">
                     <div class="text-xl font-black text-white tracking-tighter mb-1 sm:mb-2">ҰЛАН ГАЗЕТІ</div>
-                    <p>© 1930-2026 «Ұлан» республикалық газеті. Барлық құқықтар қорғалған.</p>
+                    <p>© 1930-2026 «Ұлан»газеті. Барлық құқықтар қорғалған.</p>
                 </div>
                 <div class="flex flex-wrap justify-center gap-6 text-white font-semibold">
                     <a href="https://ulan.kazgazeta.kz/" target="_blank" class="hover:text-[#B0FB26] transition-colors">Ресми Сайт</a>
@@ -953,11 +967,9 @@
 
                     <div class="space-y-3 border-t border-white/10 pt-5">
                         <h5 class="text-sm font-black uppercase text-white">Үміткер қосу</h5>
-                        <div class="grid grid-cols-3 gap-2">
-                            <input type="text" id="candNameInput" class="col-span-2 bg-black/40 text-white px-3 py-2.5 rounded-xl border-2 border-white/10 focus:border-[#B0FB26] focus:outline-none font-medium text-sm" placeholder="Аты-жөні">
-                            <input type="number" id="candCountInput" min="0" class="bg-black/40 text-white px-3 py-2.5 rounded-xl border-2 border-white/10 focus:border-[#B0FB26] focus:outline-none font-medium text-sm" placeholder="Саны">
-                        </div>
+                        <input type="text" id="candNameInput" class="w-full bg-black/40 text-white px-3 py-2.5 rounded-xl border-2 border-white/10 focus:border-[#B0FB26] focus:outline-none font-medium text-sm" placeholder="Аты-жөні">
                         <button onclick="addCandidateUI()" class="w-full bg-[#0000CC] text-white font-bold uppercase tracking-wide py-2.5 rounded-xl hover:bg-black transition-colors text-sm">+ Үміткер қосу</button>
+                        <p class="text-[11px] text-white/40">«Үздік» атанған тілші автоматты қосылады. Куәлік (рет) санын төмендегі +/− арқылы реттеуге болады.</p>
                         <div id="adminCandList" class="space-y-2"></div>
                     </div>
                 </div>
@@ -1209,6 +1221,24 @@
             return y;
         }
 
+        // Қайталанбайтын сертификат нөмірі (аты-жөні + күнге байланысты тұрақты)
+        function certIdFor(prefix, name) {
+            const base = prefix + '|' + (name || '') + '|' + new Date().toISOString().slice(0, 10);
+            let h = 0;
+            for (let i = 0; i < base.length; i++) { h = (h * 31 + base.charCodeAt(i)) >>> 0; }
+            const code = ('00000' + h.toString(36).toUpperCase()).slice(-6);
+            return 'UL-' + prefix + '-' + new Date().getFullYear() + '-' + code;
+        }
+
+        function drawCertId(ctx, W, id) {
+            ctx.save();
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#9aa0b0';
+            ctx.font = '700 26px Inter, Arial, sans-serif';
+            ctx.fillText('№ ' + id, W - 110, 130);
+            ctx.restore();
+        }
+
         function drawCertificate() {
             const canvas = document.getElementById('certCanvas');
             if (!canvas) return;
@@ -1242,6 +1272,9 @@
             ctx.fillStyle = '#B0FB26';
             certRoundRect(ctx, cx - 95, 380, 190, 10, 5); ctx.fill();
 
+            // ----- ID нөмірі -----
+            drawCertId(ctx, W, certIdFor('MS', nameRaw));
+
             // ----- Мәтін -----
             let y = 470;
             ctx.fillStyle = '#555555'; ctx.font = '400 34px Inter, Arial, sans-serif';
@@ -1253,7 +1286,7 @@
 
             y += 6;
             ctx.fillStyle = '#555555'; ctx.font = '400 34px Inter, Arial, sans-serif';
-            y = certWrap(ctx, 'толық оқып, меңгергені үшін', cx, y, 1560, 50);
+            y = certWrap(ctx, 'толық оқып шыққаны үшін', cx, y, 1560, 50);
 
             // ----- Аты-жөні -----
             y += 70;
@@ -1363,6 +1396,17 @@
             }
             empty.classList.add('hidden'); content.classList.remove('hidden');
             document.getElementById('bestName').textContent = best.name;
+            // күні
+            const dateEl = document.getElementById('bestDate');
+            if (dateEl) {
+                let ds = '';
+                try { ds = best.updated ? formatKkDate(best.updated) : certToday(); } catch (e) { ds = ''; }
+                dateEl.textContent = ds || '—';
+            }
+            // мөр
+            const seal = document.getElementById('bestSealImg');
+            if (seal && typeof CERT_SEAL_SRC !== 'undefined' && !seal.src) seal.src = CERT_SEAL_SRC;
+            // фото
             const img = document.getElementById('bestPhoto');
             const ph = document.getElementById('bestPhotoPlaceholder');
             if (best.photoUrl) {
@@ -1372,7 +1416,7 @@
             } else {
                 img.classList.add('hidden'); ph.classList.remove('hidden');
             }
-            updateBestProgress();
+            updateBestBadge();
         }
 
         function renderCandidates(list) {
@@ -1380,39 +1424,29 @@
             const empty = document.getElementById('candidatesEmpty');
             if (!el) return;
             el.innerHTML = '';
-            if (!list.length) { empty.classList.remove('hidden'); updateBestProgress(); return; }
+            if (!list.length) { empty.classList.remove('hidden'); updateBestBadge(); return; }
             empty.classList.add('hidden');
             list.forEach((c, i) => {
-                const pct = Math.min(100, Math.round((c.certs / 7) * 100));
                 const row = document.createElement('div');
-                row.className = 'bg-white/5 rounded-xl px-4 py-3 border border-white/10';
+                row.className = 'flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3 border border-white/10';
                 row.innerHTML =
-                    '<div class="flex items-center gap-3">' +
                     '<span class="w-7 h-7 flex-shrink-0 rounded-lg ' + (i === 0 ? 'bg-[#B0FB26] text-[#111111]' : 'bg-white/10 text-white') + ' flex items-center justify-center font-black text-sm">' + (i + 1) + '</span>' +
-                    '<span class="flex-grow text-white font-semibold truncate">' + escapeHtml(c.name) + '</span>' +
-                    '<span class="flex-shrink-0 text-white/50 text-xs font-medium">' + c.count + ' мақала</span>' +
-                    '<span class="flex-shrink-0 text-[#B0FB26] font-black text-xs whitespace-nowrap">🎖️ ' + c.certs + '/7</span>' +
-                    '</div>' +
-                    '<div class="h-1.5 bg-white/10 rounded-full overflow-hidden mt-2"><div class="h-full bg-[#B0FB26] rounded-full" style="width:' + pct + '%"></div></div>';
+                    '<span class="flex-grow text-white font-semibold truncate">' + escapeHtml(c.name) + '</span>';
                 el.appendChild(row);
             });
-            updateBestProgress();
+            updateBestBadge();
         }
 
-        function updateBestProgress() {
-            const wrap = document.getElementById('bestProgress');
-            if (!wrap) return;
+        function updateBestBadge() {
+            const el = document.getElementById('bestTimes');
+            if (!el) return;
             const name = (currentBest && currentBest.name) ? currentBest.name.trim().toLowerCase() : '';
-            let certs = 0;
+            let certs = 1;
             if (name) {
                 const c = allCandidates.find(x => (x.name || '').trim().toLowerCase() === name);
-                if (c) certs = c.certs || 0;
+                if (c) certs = Math.max(1, c.certs || 0);
             }
-            const num = document.getElementById('bestProgressNum');
-            const bar = document.getElementById('bestProgressBar');
-            if (num) num.textContent = certs + '/7';
-            if (bar) bar.style.width = Math.min(100, Math.round((certs / 7) * 100)) + '%';
-            wrap.classList.toggle('hidden', !(currentBest && currentBest.name));
+            el.textContent = certs;
         }
 
         async function saveBest() {
@@ -1450,12 +1484,10 @@
         async function addCandidateUI() {
             if (!currentAdmin || currentAdmin.login !== 'nurlykhan') return;
             const name = document.getElementById('candNameInput').value.trim();
-            const count = parseInt(document.getElementById('candCountInput').value, 10) || 0;
             if (!name) return;
             try {
-                await jsonp({ action: 'addCandidate', login: currentAdmin.login, pass: currentAdmin.pass, name: name, count: count });
+                await jsonp({ action: 'addCandidate', login: currentAdmin.login, pass: currentAdmin.pass, name: name, count: 0 });
                 document.getElementById('candNameInput').value = '';
-                document.getElementById('candCountInput').value = '';
                 loadBestReporter();
             } catch (e) {}
         }
@@ -1495,6 +1527,9 @@
                 ctx.drawImage(certLogoImg, cx - lw / 2, headMid - lh / 2, lw, lh);
             }
             ctx.textAlign = 'center';
+
+            // ID нөмірі
+            drawCertId(ctx, W, certIdFor('BT', name));
 
             // СЕРТИФИКАТ
             ctx.fillStyle = '#affa27'; ctx.font = '800 100px Inter, Arial, sans-serif';
@@ -1586,7 +1621,7 @@
                 nm.textContent = c.name;
                 const meta = document.createElement('div');
                 meta.className = 'text-white/40 text-xs';
-                meta.textContent = c.count + ' мақала · 🎖️ ' + c.certs + '/7';
+                meta.textContent = '🎖️ ' + c.certs + ' рет үздік';
                 info.appendChild(nm); info.appendChild(meta);
 
                 const ctrls = document.createElement('div');
@@ -1665,10 +1700,18 @@
             }
         }
 
+        let newsVisible = 3;
+
+        function showMoreNews() {
+            newsVisible += 3;
+            renderNews(allNews);
+        }
+
         function renderNews(news) {
             const grid = document.getElementById('newsGrid');
             grid.innerHTML = '';
-            news.forEach((item, idx) => {
+            const shown = news.slice(0, newsVisible);
+            shown.forEach((item, idx) => {
                 const featured = (idx === 0);
                 const card = document.createElement('article');
                 card.setAttribute('onclick', `openNewsDetail('${escapeHtml(item.id)}')`);
@@ -1725,6 +1768,18 @@
                 }
                 grid.appendChild(card);
             });
+
+            const moreWrap = document.getElementById('newsMoreWrap');
+            const moreCount = document.getElementById('newsMoreCount');
+            if (moreWrap) {
+                const remaining = news.length - newsVisible;
+                if (remaining > 0) {
+                    moreWrap.classList.remove('hidden');
+                    if (moreCount) moreCount.textContent = '(' + remaining + ')';
+                } else {
+                    moreWrap.classList.add('hidden');
+                }
+            }
         }
 
         // Жаңалықты толық оқу терезесі

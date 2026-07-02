@@ -395,9 +395,12 @@
                         <input type="text" id="certName" maxlength="40" oninput="drawCertificate()" placeholder="Мысалы: Нұрлыхан Жұмахан" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#0000CC] focus:outline-none font-semibold">
                     </div>
                     <p id="certWarn" class="text-red-500 text-sm font-medium hidden">Алдымен аты-жөніңді жаз.</p>
+                    <div id="certClaimedMsg" class="hidden bg-[#B0FB26]/15 border border-[#B0FB26] rounded-xl px-4 py-3 text-sm font-semibold text-gray-700">
+                        ✅ Бұл құрылғыдан сертификат алынып қойған: <span id="certClaimedName" class="text-[#0000CC] font-black"></span> (<span id="certClaimedDate"></span>). Әр құрылғыдан бір-ақ рет беріледі.
+                    </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="downloadCert('pdf')" class="bg-[#0000CC] text-white font-black uppercase tracking-wide py-3.5 rounded-xl hover:bg-black transition-colors text-sm">PDF жүктеу</button>
-                        <button onclick="downloadCert('jpeg')" class="bg-[#B0FB26] text-[#111111] font-black uppercase tracking-wide py-3.5 rounded-xl hover:bg-[#9fe61f] transition-colors text-sm">Сурет (JPG)</button>
+                        <button id="certPdfBtn" onclick="downloadCert('pdf')" class="bg-[#0000CC] text-white font-black uppercase tracking-wide py-3.5 rounded-xl hover:bg-black transition-colors text-sm">PDF жүктеу</button>
+                        <button id="certJpgBtn" onclick="downloadCert('jpeg')" class="bg-[#B0FB26] text-[#111111] font-black uppercase tracking-wide py-3.5 rounded-xl hover:bg-[#9fe61f] transition-colors text-sm">Сурет (JPG)</button>
                     </div>
                     <p class="text-[11px] text-gray-400 leading-relaxed">Сертификатта аты-жөнің, берілген күн автоматты жазылады.</p>
                 </div>
@@ -1303,7 +1306,44 @@
             catch (e) { return ''; }
         }
 
+        // ===== Бір құрылғы = бір сертификат (localStorage құлпы) =====
+        function getCertClaim() {
+            try { return JSON.parse(localStorage.getItem('ulan_cert_claim') || 'null'); }
+            catch (e) { return null; }
+        }
+
+        function applyCertLock() {
+            const claim = getCertClaim();
+            if (!claim || !claim.name) return;
+            const nameInput = document.getElementById('certName');
+            nameInput.value = claim.name;
+            nameInput.readOnly = true;
+            nameInput.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+            ['certPdfBtn', 'certJpgBtn'].forEach(function (id) {
+                const b = document.getElementById(id);
+                if (b) { b.disabled = true; b.classList.add('opacity-40', 'cursor-not-allowed'); }
+            });
+            const msg = document.getElementById('certClaimedMsg');
+            document.getElementById('certClaimedName').textContent = claim.name;
+            document.getElementById('certClaimedDate').textContent = claim.date || '';
+            msg.classList.remove('hidden');
+            drawCertificate();
+        }
+
+        function saveCertClaim(name) {
+            try {
+                localStorage.setItem('ulan_cert_claim', JSON.stringify({
+                    name: name,
+                    date: certToday(),
+                    id: certIdFor('MS', name)
+                }));
+            } catch (e) {}
+            applyCertLock();
+        }
+
         function downloadCert(fmt) {
+            // Бұрын алынып қойса — қайта бермейміз
+            if (getCertClaim()) { applyCertLock(); return; }
             const nameRaw = (document.getElementById('certName').value || '').trim();
             const warn = document.getElementById('certWarn');
             if (!nameRaw) { warn.classList.remove('hidden'); document.getElementById('certName').focus(); return; }
@@ -1319,6 +1359,7 @@
                 a.download = 'Ulan_sertifikat_' + safe + '.jpg';
                 a.href = canvas.toDataURL('image/jpeg', 0.95);
                 a.click();
+                saveCertClaim(nameRaw);
             } else {
                 if (!(window.jspdf && window.jspdf.jsPDF)) {
                     alert('PDF кітапханасы әлі жүктелмеді. Бетті жаңартып көріңіз немесе «Сурет (JPG)» нұсқасын жүктеңіз.');
@@ -1330,6 +1371,7 @@
                 const ph = pdf.internal.pageSize.getHeight();
                 pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pw, ph);
                 pdf.save('Ulan_sertifikat_' + safe + '.pdf');
+                saveCertClaim(nameRaw);
             }
         }
 
@@ -1340,6 +1382,7 @@
             } catch (e) {}
             if (document.fonts && document.fonts.ready) { document.fonts.ready.then(drawCertificate); }
             setTimeout(drawCertificate, 400);
+            applyCertLock(); // бұл құрылғыдан бұрын алынған болса — форманы құлыптаймыз
         }
 
         // ====================== АЙДЫҢ ҮЗДІК ТІЛШІСІ ======================

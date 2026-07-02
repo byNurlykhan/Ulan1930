@@ -1682,8 +1682,9 @@
 
             // --- Төменгі блок: мөр (сол), күн (оң) ---
             if (certSealReady) {
-                const ss = 150;
-                ctx.drawImage(certSealImg, 70, 1110, ss, ss * (certSealImg.height / certSealImg.width));
+                const ss = 230; // мөрдің ені (үлкейтілді)
+                const sealH = ss * (certSealImg.height / certSealImg.width);
+                ctx.drawImage(certSealImg, 64, H - 74 - sealH, ss, sealH);
             }
             ctx.textAlign = 'right';
             ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '700 17px Inter, Arial, sans-serif';

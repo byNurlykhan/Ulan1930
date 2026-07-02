@@ -1341,16 +1341,38 @@
         let bestPhotoLoadedFor = '';
 
         async function loadBestReporter() {
-            let best = { name: '', photoUrl: '', updated: '' };
+            // 1) КЭШ: соңғы сәтті деректерді localStorage-тан лезде көрсетеміз —
+            //    сайт Apps Script жауабын күтпей-ақ бірден "тірі" көрінеді.
             try {
-                const res = await jsonp({ action: 'getBest' });
-                best = (res && res.best) ? res.best : best;
+                const cached = JSON.parse(localStorage.getItem('ulan_best_cache') || 'null');
+                if (cached && cached.best) {
+                    currentBest = cached.best;
+                    allCandidates = cached.candidates || [];
+                    renderCandidates(allCandidates);
+                    renderBestCard();
+                }
             } catch (e) {}
+
+            // 2) СЕРВЕР: екі сұранысты ҚАТАР жібереміз (бұрын бірінен соң бірі күтетін —
+            //    Apps Script-тің әр шақыруы 1-3 секунд, тізбектесе 2 есе баяу еді).
+            let best = currentBest && currentBest.name ? currentBest : { name: '', photoUrl: '', updated: '' };
+            const [bestRes, candRes] = await Promise.allSettled([
+                jsonp({ action: 'getBest' }),
+                jsonp({ action: 'getCandidates' })
+            ]);
+            if (bestRes.status === 'fulfilled' && bestRes.value && bestRes.value.best) {
+                best = bestRes.value.best;
+            }
+            if (candRes.status === 'fulfilled' && candRes.value && candRes.value.candidates) {
+                allCandidates = candRes.value.candidates;
+            }
             currentBest = best;
+
+            // Жаңа деректерді кэшке сақтап қоямыз (келесі кіргенде лезде шығады)
             try {
-                const res = await jsonp({ action: 'getCandidates' });
-                allCandidates = (res && res.candidates) ? res.candidates : [];
+                localStorage.setItem('ulan_best_cache', JSON.stringify({ best: currentBest, candidates: allCandidates }));
             } catch (e) {}
+
             renderCandidates(allCandidates);
             if (currentAdmin && currentAdmin.login === 'nurlykhan') {
                 renderAdminCandidates(allCandidates);
@@ -1381,17 +1403,60 @@
             // Алдымен фотосыз сал, сосын фото келгенде қайта сал
             drawBestCardWith(bestPhotoLoadedFor === (currentBest.photoUrl || '') ? bestPhotoImg : null);
             if (currentBest.photoUrl && bestPhotoLoadedFor !== currentBest.photoUrl) {
-                jsonp({ action: 'getBestPhoto' }).then(function (res) {
-                    if (res && res.dataUrl) {
-                        const img = new Image();
-                        img.onload = function () {
-                            bestPhotoImg = img; bestPhotoLoadedFor = currentBest.photoUrl;
-                            drawBestCardWith(img);
-                        };
-                        img.src = res.dataUrl;
-                    }
-                }).catch(function () {});
+                loadBestPhoto(currentBest.photoUrl);
             }
+        }
+
+        let bestPhotoLoading = false;
+        function loadBestPhoto(photoKey, isRetry) {
+            if (bestPhotoLoading && !isRetry) return;
+            bestPhotoLoading = true;
+
+            // 1) КЭШ: фото data URL-ы бұрын сақталса — серверге бармай-ақ саламыз
+            try {
+                const pc = JSON.parse(localStorage.getItem('ulan_best_photo') || 'null');
+                if (pc && pc.key === photoKey && pc.dataUrl) {
+                    applyBestPhoto(pc.dataUrl, photoKey);
+                    return;
+                }
+            } catch (e) {}
+
+            // 2) СЕРВЕР: фото base64 күйінде үлкен келеді — timeout-ты 45 секундқа ұзарттық
+            jsonp({ action: 'getBestPhoto' }, 45000).then(function (res) {
+                if (res && res.dataUrl && res.dataUrl.indexOf('data:image') === 0) {
+                    try {
+                        localStorage.setItem('ulan_best_photo', JSON.stringify({ key: photoKey, dataUrl: res.dataUrl }));
+                    } catch (e) {}
+                    applyBestPhoto(res.dataUrl, photoKey);
+                } else {
+                    bestPhotoLoading = false;
+                    console.warn('getBestPhoto: жауап бос немесе dataUrl дұрыс емес', res);
+                }
+            }).catch(function (err) {
+                console.warn('getBestPhoto қатесі:', err && err.message);
+                if (!isRetry) {
+                    // Бір рет қайталап көреміз (Apps Script суық старт кезінде жиі көмектеседі)
+                    setTimeout(function () { loadBestPhoto(photoKey, true); }, 2000);
+                } else {
+                    bestPhotoLoading = false;
+                }
+            });
+        }
+
+        function applyBestPhoto(dataUrl, photoKey) {
+            const img = new Image();
+            img.onload = function () {
+                bestPhotoImg = img; bestPhotoLoadedFor = photoKey;
+                bestPhotoLoading = false;
+                drawBestCardWith(img);
+            };
+            img.onerror = function () {
+                bestPhotoLoading = false;
+                // Кэштегі сурет бүлінген болса — өшіріп, серверден қайта аламыз
+                try { localStorage.removeItem('ulan_best_photo'); } catch (e) {}
+                console.warn('Фото data URL оқылмады (бүлінген болуы мүмкін)');
+            };
+            img.src = dataUrl;
         }
 
         function drawBestCardWith(photoImg) {
@@ -1445,6 +1510,9 @@
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
                 showBestMsg('Сақталды! Жаңартылуда... ✅', true);
                 fileInput.value = '';
+                // Ескі фото-кэшті тазалаймыз — жаңа сурет серверден қайта алынсын
+                try { localStorage.removeItem('ulan_best_photo'); localStorage.removeItem('ulan_best_cache'); } catch (e) {}
+                bestPhotoLoadedFor = ''; bestPhotoImg = null; bestPhotoLoading = false;
                 setTimeout(loadBestReporter, 2800);
             } catch (e) { showBestMsg('Қате. Қайта көріңіз.', false); }
             finally { btn.disabled = false; btn.textContent = 'Үздік тілшіні сақтау 🏆'; }
@@ -1667,11 +1735,11 @@
         }
 
         // ====================== JSONP КӨМЕКШІСІ ======================
-        function jsonp(params) {
+        function jsonp(params, timeoutMs) {
             return new Promise((resolve, reject) => {
                 const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
                 const s = document.createElement('script');
-                const timer = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 20000);
+                const timer = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, timeoutMs || 20000);
                 function cleanup() {
                     clearTimeout(timer);
                     delete window[cb];
